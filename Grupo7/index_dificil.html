@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Configurador 3D - Guitarra Custom</title>
+    
+    <!-- Three.js y extensiones -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/",
+                "lil-gui": "https://unpkg.com/lil-gui@0.16.0/dist/lil-gui.esm.min.js"
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="./estilos_dificil.css">
+    <script type="module" src="./prueba_dificil.js"
+</head>
+<body>
+    <div id="info">
+        <h1>🎸 Custom Guitar Builder</h1>
+        <div class="subtitle">Three.js • Configuración en tiempo real</div>
+    </div>
+
+    <div id="gui-container">
+        <div class="gui-title">⚡ CONTROLES DE LA GUITARRA</div>
+        <div id="gui" style="color: white;"></div>
+    </div>
+
+    <div class="instrucciones">
+        🖱️ RATÓN: Rotar • 🖱️ RUEDA: Zoom • 🎸 Cambia colores y piezas
+    </div>
+
+
+</body>
+</html>

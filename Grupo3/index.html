@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gastos + Quedadas</title>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+    <!-- Day.js -->
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.9/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.9/locale/es.js"></script>
+    
+    <!-- Leaflet (mapas) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- SortableJS -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h2 {
+            color: #444;
+            margin: 30px 0 20px;
+            font-size: 1.5rem;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            border: 1px solid #f0f0f0;
+        }
+
+        /* Filtro fechas */
+        .filtro-fechas {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filtro-fechas input {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .filtro-fechas button {
+            padding: 10px 20px;
+            background: #4158D0;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        /* Tabla gastos */
+        .tabla-gastos {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .tabla-gastos th {
+            text-align: left;
+            padding: 12px;
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .tabla-gastos td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .categoria {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: white;
+        }
+
+        .categoria-comida { background: #FF6B6B; }
+        .categoria-transporte { background: #4ECDC4; }
+        .categoria-ocio { background: #FFE66D; color: #333; }
+        .categoria-otros { background: #A8E6CF; color: #333; }
+
+        /* Mapa */
+        #mapa {
+            height: 300px;
+            width: 100%;
+            border-radius: 15px;
+            margin-top: 15px;
+        }
+
+        /* Lista participantes */
+        .lista-participantes {
+            list-style: none;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .participante-item {
+            padding: 12px;
+            background: white;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: move;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .participante-item:hover {
+            background: #f0f0f0;
+            transform: translateX(5px);
+        }
+
+        .drag-handle {
+            color: #999;
+            font-size: 18px;
+        }
+
+        .total-gastos {
+            font-size: 1.5rem;
+            color: #4158D0;
+            font-weight: bold;
+            text-align: right;
+            margin-top: 15px;
+        }
+
+        .crear-quedada {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .crear-quedada input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1> Gestión de Gastos + Quedadas</h1>
+
+        <!-- SECCIÓN 1: GRÁFICO + FILTRO FECHAS -->
+        <div class="grid-2">
+            <!-- Gráfico mensual / balance -->
+            <div class="card">
+                <h2> Gastos por categoría</h2>
+                <div class="filtro-fechas">
+                    <input type="date" id="fecha-inicio" value="2026-02-01">
+                    <input type="date" id="fecha-fin" value="2026-02-28">
+                    <button onclick="aplicarFiltroFechas()">Filtrar</button>
+                </div>
+                <canvas id="grafico-gastos" style="width:100%; max-height:250px;"></canvas>
+                <div class="total-gastos" id="total-gastos">Total: 0€</div>
+            </div>
+
+            <!-- Mapa Leaflet -->
+            <div class="card">
+                <h2> Quedada - Punto de encuentro</h2>
+                <div id="mapa"></div>
+                <div style="margin-top: 15px; display: flex; gap: 10px;">
+                    <input type="text" id="lugar-quedada" placeholder="Ej: I.E.S. Ataulfo Argenta, Castro Urdiales" style="flex: 1; padding: 10px; border-radius: 8px; border: 2px solid #e0e0e0;">
+                    <button onclick="actualizarMapa()" style="background: #C850C0; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">Ir</button>
+                </div>
+                <p id="info-quedada" style="margin-top: 10px; color: #666;"></p>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: TABLA GASTOS + SORTABLEJS -->
+        <div class="grid-2">
+            <!-- Tabla de gastos -->
+            <div class="card">
+                <h2> Últimos gastos</h2>
+                <table class="tabla-gastos" id="tabla-gastos">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Concepto</th>
+                            <th>Categoría</th>
+                            <th>Importe</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-gastos"></tbody>
+                </table>
+            </div>
+
+            <!-- Lista participantes con SortableJS -->
+            <div class="card">
+                <h2>👥 Participantes (ordena arrastrando)</h2>
+                <ul class="lista-participantes" id="lista-participantes">
+                    <li class="participante-item">
+                        <span class="drag-handle">☰</span>
+                        <span style="flex: 1;">Ana García</span>
+                        <span style="color: #4ECDC4;">45.50€</span>
+                    </li>
+                    <li class="participante-item">
+                        <span class="drag-handle">☰</span>
+                        <span style="flex: 1;">Carlos López</span>
+                        <span style="color: #4ECDC4;">32.00€</span>
+                    </li>
+                    <li class="participante-item">
+                        <span class="drag-handle">☰</span>
+                        <span style="flex: 1;">María Rodríguez</span>
+                        <span style="color: #4ECDC4;">28.75€</span>
+                    </li>
+                    <li class="participante-item">
+                        <span class="drag-handle">☰</span>
+                        <span style="flex: 1;">Juan Martínez</span>
+                        <span style="color: #4ECDC4;">15.20€</span>
+                    </li>
+                </ul>
+                
+                <!-- Crear nueva quedada -->
+                <div class="crear-quedada">
+                    <h3 style="margin-bottom: 10px; font-size: 1.1rem;">📅 Nueva quedada</h3>
+                    <input type="text" id="nombre-quedada" placeholder="Nombre de la quedada">
+                    <input type="date" id="fecha-quedada" value="2026-02-20">
+                    <button onclick="crearQuedada()" style="width: 100%; background: #FFCC70; color: #333; font-weight: bold;">Programar quedada</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ DAY.JS - CONFIGURACIÓN ============
+        dayjs.locale('es');
+        
+        // ============ DATOS DE EJEMPLO ============
+        let gastos = [
+            { fecha: '2026-02-05', concepto: 'Cena italiana', categoria: 'comida', importe: 45.50 },
+            { fecha: '2026-02-07', concepto: 'Uber compartido', categoria: 'transporte', importe: 18.30 },
+            { fecha: '2026-02-10', concepto: 'Cine', categoria: 'ocio', importe: 32.00 },
+            { fecha: '2026-02-12', concepto: 'Comida rápida', categoria: 'comida', importe: 22.40 },
+            { fecha: '2026-02-15', concepto: 'Taxi', categoria: 'transporte', importe: 15.75 },
+            { fecha: '2026-02-18', concepto: 'Bolos', categoria: 'ocio', importe: 28.90 },
+            { fecha: '2026-02-20', concepto: 'Supermercado', categoria: 'comida', importe: 35.20 },
+            { fecha: '2026-02-22', concepto: 'Metro', categoria: 'transporte', importe: 12.50 },
+            { fecha: '2026-02-25', concepto: 'Concierto', categoria: 'ocio', importe: 55.00 }
+        ];
+
+        // Variables globales
+        let chartInstance = null;
+        let mapa = null;
+        let marcador = null;
+
+        // ============ 1. CHART.JS - GRÁFICO POR CATEGORÍAS ============
+        function actualizarGrafico(gastosFiltrados) {
+            // Agrupar por categoría usando Day.js para fechas
+            const categorias = {
+                'comida': { nombre: 'Comida', total: 0, color: '#FF6B6B' },
+                'transporte': { nombre: 'Transporte', total: 0, color: '#4ECDC4' },
+                'ocio': { nombre: 'Ocio', total: 0, color: '#FFE66D' },
+                'otros': { nombre: 'Otros', total: 0, color: '#A8E6CF' }
+            };
+
+            gastosFiltrados.forEach(gasto => {
+                if (categorias[gasto.categoria]) {
+                    categorias[gasto.categoria].total += gasto.importe;
+                } else {
+                    categorias['otros'].total += gasto.importe;
+                }
+            });
+
+            // Calcular total
+            const total = Object.values(categorias).reduce((sum, cat) => sum + cat.total, 0);
+            document.getElementById('total-gastos').innerHTML = `Total: ${total.toFixed(2)}€`;
+
+            // Preparar datos para el gráfico
+            const datos = Object.values(categorias).filter(cat => cat.total > 0);
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const ctx = document.getElementById('grafico-gastos').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: datos.map(d => d.nombre),
+                    datasets: [{
+                        data: datos.map(d => d.total),
+                        backgroundColor: datos.map(d => d.color),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+
+            // Actualizar tabla de gastos
+            actualizarTabla(gastosFiltrados);
+        }
+
+        // ============ FILTRO POR FECHAS CON DAY.JS ============
+        function aplicarFiltroFechas() {
+            const inicio = document.getElementById('fecha-inicio').value;
+            const fin = document.getElementById('fecha-fin').value;
+            
+            if (!inicio || !fin) return;
+
+            // Usar Day.js para comparar fechas
+            const fechaInicio = dayjs(inicio);
+            const fechaFin = dayjs(fin);
+
+            const gastosFiltrados = gastos.filter(gasto => {
+                const fechaGasto = dayjs(gasto.fecha);
+                return (fechaGasto.isAfter(fechaInicio) || fechaGasto.isSame(fechaInicio)) && 
+                       (fechaGasto.isBefore(fechaFin) || fechaGasto.isSame(fechaFin));
+            });
+
+            actualizarGrafico(gastosFiltrados);
+        }
+
+        // ============ ACTUALIZAR TABLA ============
+        function actualizarTabla(gastosMostrar) {
+            const tbody = document.getElementById('tbody-gastos');
+            tbody.innerHTML = gastosMostrar.sort((a, b) => dayjs(b.fecha).isAfter(dayjs(a.fecha)) ? 1 : -1)
+                .map(gasto => {
+                    const fechaFormateada = dayjs(gasto.fecha).format('DD/MM/YYYY');
+                    const categoriaClass = `categoria categoria-${gasto.categoria}`;
+                    
+                    return `<tr>
+                        <td>${fechaFormateada}</td>
+                        <td>${gasto.concepto}</td>
+                        <td><span class="${categoriaClass}">${gasto.categoria}</span></td>
+                        <td><strong>${gasto.importe.toFixed(2)}€</strong></td>
+                    </tr>`;
+                }).join('');
+        }
+
+        // ============ 2. LEAFLET - MAPA ============
+        function inicializarMapa() {
+            // Coordenadas por defecto (Castro Urdiales)
+            mapa = L.map('mapa').setView([43.37949354398391, -3.2172119720794625], 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(mapa);
+
+            // Marcador inicial
+            marcador = L.marker([43.37949354398391, -3.2172119720794625]).addTo(mapa);
+            marcador.bindPopup(" I.E.S. Ataul Argenta, Castro Urdiales").openPopup();
+            
+            document.getElementById('info-quedada').innerHTML = "📍 Quedada: I.E.S. Ataulfo Argenta, Castro Urdiales - 20/02/2026";
+        }
+
+        function actualizarMapa() {
+            const lugar = document.getElementById('lugar-quedada').value;
+            if (!lugar) return;
+
+            // Simular geocodificación (ejemplo práctico)
+            // En un caso real usarías Nominatim o similar
+            alert(` Buscando: ${lugar}\n(En un caso real se geocodificaría la dirección)`);
+            
+            // Simular nueva ubicación (coordenadas aleatorias cercanas)
+            const lat = 43.37949354398391 + (Math.random() - 0.5) * 0.1;
+            const lng = -3.2172119720794625 + (Math.random() - 0.5) * 0.1;
+            
+            mapa.setView([lat, lng], 15);
+            
+            if (marcador) {
+                mapa.removeLayer(marcador);
+            }
+            
+            marcador = L.marker([lat, lng]).addTo(mapa);
+            marcador.bindPopup(` ${lugar}`).openPopup();
+            
+            document.getElementById('info-quedada').innerHTML = `📍 Quedada: ${lugar} - ${dayjs().format('DD/MM/YYYY')}`;
+        }
+
+        // ============ 3. SORTABLEJS - ORDENAR PARTICIPANTES ============
+        function inicializarSortable() {
+            const lista = document.getElementById('lista-participantes');
+            
+            new Sortable(lista, {
+                animation: 300,
+                handle: '.drag-handle',
+                ghostClass: 'participante-item-ghost',
+                dragClass: 'participante-item-drag',
+                onEnd: function(evt) {
+                    console.log(' Orden actualizado:', evt.newIndex);
+                    // Animación simple
+                    evt.item.style.transform = 'translateX(0)';
+                }
+            });
+        }
+
+        // ============ CREAR NUEVA QUEDADA ============
+        function crearQuedada() {
+            const nombre = document.getElementById('nombre-quedada').value;
+            const fecha = document.getElementById('fecha-quedada').value;
+            
+            if (!nombre || !fecha) {
+                alert(' Por favor, completa todos los campos');
+                return;
+            }
+
+            const fechaFormateada = dayjs(fecha).format('DD/MM/YYYY');
+            alert(` Quedada creada: "${nombre}" para el ${fechaFormateada}`);
+            
+            // Limpiar campos
+            document.getElementById('nombre-quedada').value = '';
+        }
+
+        // ============ INICIALIZACIÓN ============
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inicializar fechas por defecto con Day.js
+            const hoy = dayjs();
+            const inicioMes = hoy.startOf('month').format('YYYY-MM-DD');
+            const finMes = hoy.endOf('month').format('YYYY-MM-DD');
+            
+            document.getElementById('fecha-inicio').value = inicioMes;
+            document.getElementById('fecha-fin').value = finMes;
+            
+            // Inicializar componentes
+            inicializarMapa();
+            inicializarSortable();
+            
+            // Aplicar filtro inicial
+            aplicarFiltroFechas();
+        });
+    </script>
+</body>
+</html>

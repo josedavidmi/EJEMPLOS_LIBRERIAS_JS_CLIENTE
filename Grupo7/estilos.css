@@ -1,0 +1,144 @@
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 {
+            color: white;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subtitle {
+            color: #ddd;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+        }
+
+        /* Model Viewer */
+        model-viewer {
+            width: 100%;
+            height: 500px;
+            background: radial-gradient(circle at 50% 50%, #1a2a3a, #0f1a24);
+            border-radius: 15px;
+            --poster-color: transparent;
+            --progress-bar-color: #ff6b6b;
+            --progress-bar-height: 5px;
+        }
+
+        /* Panel de controles */
+        .control-panel {
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            padding: 25px;
+            border-radius: 15px;
+            color: white;
+            border: 1px solid #ff6b6b;
+        }
+
+        .control-title {
+            color: #ff6b6b;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #ff6b6b;
+            padding-bottom: 10px;
+        }
+
+        .color-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+
+        .color-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .color-btn:hover {
+            transform: scale(1.2);
+            border-color: white;
+        }
+
+        .color-btn.active {
+            border-color: #ff6b6b;
+            transform: scale(1.1);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a5a);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255,107,107,0.4);
+        }
+
+        .precio {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ff6b6b;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .instrucciones {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: #ddd;
+        }

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Configurador 3D - Guitarra (Model Viewer)</title>
+    
+    <!-- Model Viewer -->
+    <script type="importmap">
+        {
+            "imports": {
+                "@google/model-viewer": "https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"
+            }
+        }
+    </script>
+        <!-- Archivo de estilos -->
+    <link rel="stylesheet" href="./estilos.css">
+
+    <script type="module" src="./prueba.js" defer></script>
+
+</head>
+<body>
+    <h1>🎸 GUITARRA CUSTOM 3D</h1>
+    <div class="subtitle">Model Viewer • Cambia colores y piezas • Totalmente interactivo</div>
+
+    <div class="container">
+        <div class="grid-2">
+            <!-- MODEL-VIEWER 3D -->
+            <div>
+                <script type="importmap">
+                    {
+                        "imports": {
+                            "@google/model-viewer": "https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"
+                        }
+                    }
+                </script>
+                
+                <!-- IMPORTANTE: Usamos un modelo público GLB de guitarra -->
+                <model-viewer 
+                    id="guitar-viewer"
+                    src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb"
+                    alt="Guitarra 3D"
+                    ar
+                    ar-modes="webxr scene-viewer quick-look"
+                    camera-controls
+                    auto-rotate
+                    rotation-per-second="30deg"
+                    shadow-intensity="1"
+                    exposure="1.2"
+                    camera-orbit="45deg 55deg 3m"
+                    style="width: 100%; height: 500px;">
+                    
+                    <!-- Fallback para navegadores sin soporte -->
+                    <div slot="progress-bar" style="position: absolute; bottom: 0; width: 100%; height: 5px; background: #ff6b6b;"></div>
+                </model-viewer>
+                
+                <p style="color: white; text-align: center; margin-top: 10px; font-size: 0.85rem;">
+                    🖱️ Arrastra para rotar • Rueda para zoom • Auto-rotación activada
+                </p>
+            </div>
+
+            <!-- PANEL DE CONTROL - Cambiar colores y piezas -->
+            <div class="control-panel">
+                <div class="control-title">
+                    <span>⚡ CONFIGURADOR</span>
+                </div>
+                
+                <!-- COLOR DEL CUERPO -->
+                <div style="margin-bottom: 25px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span style="font-weight: bold;">🎨 CUERPO</span>
+                        <span id="cuerpo-seleccionado" style="color: #ff6b6b;">Rojo</span>
+                    </div>
+                    <div style="display: flex; gap: 15px; justify-content: space-around;">
+                        <div onclick="cambiarColorCuerpo('rojo')" class="color-btn" style="background: #c41e3a;"></div>
+                        <div onclick="cambiarColorCuerpo('azul')" class="color-btn" style="background: #2a6f8b;"></div>
+                        <div onclick="cambiarColorCuerpo('negro')" class="color-btn" style="background: #222222;"></div>
+                        <div onclick="cambiarColorCuerpo('blanco')" class="color-btn" style="background: #f5f5f5;"></div>
+                        <div onclick="cambiarColorCuerpo('verde')" class="color-btn" style="background: #2e7d32;"></div>
+                    </div>
+                </div>
+
+                <!-- COLOR DEL MÁSTIL -->
+                <div style="margin-bottom: 25px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span style="font-weight: bold;">🎸 MÁSTIL</span>
+                        <span id="mastil-seleccionado" style="color: #ff6b6b;">Caoba</span>
+                    </div>
+                    <div style="display: flex; gap: 15px; justify-content: space-around;">
+                        <div onclick="cambiarColorMastil('caoba')" class="color-btn" style="background: #8b5a2b;"></div>
+                        <div onclick="cambiarColorMastil('arce')" class="color-btn" style="background: #d2b48c;"></div>
+                        <div onclick="cambiarColorMastil('nogal')" class="color-btn" style="background: #6b4423;"></div>
+                        <div onclick="cambiarColorMastil('negro')" class="color-btn" style="background: #1a1a1a;"></div>
+                    </div>
+                </div>
+
+                <!-- TIPO DE PASTILLAS -->
+                <div style="margin-bottom: 25px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span style="font-weight: bold;">🔊 PASTILLAS</span>
+                        <span id="pastilla-seleccionada" style="color: #ff6b6b;">Humbucker</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <button onclick="cambiarPastillas('humbucker')" style="background: #333; color: white; border: 2px solid #ff6b6b; padding: 10px; border-radius: 8px; cursor: pointer;">
+                            🎸 Humbucker
+                        </button>
+                        <button onclick="cambiarPastillas('single')" style="background: #333; color: white; border: 2px solid #666; padding: 10px; border-radius: 8px; cursor: pointer;">
+                            🎸 Single-coil
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PRECIO SIMULADO -->
+                <div class="precio" id="precio-guitarra">
+                    899 €
+                </div>
+
+                <!-- BOTONES DE ACCIÓN -->
+                <button class="btn" onclick="configurarGuitarra()">
+                    🛒 AÑADIR AL CARRITO
+                </button>
+                
+                <div class="instrucciones">
+                    <strong>📌 CONFIGURACIÓN ACTUAL:</strong><br>
+                    • Cuerpo: <span id="resumen-cuerpo">Rojo</span><br>
+                    • Mástil: <span id="resumen-mastil">Caoba</span><br>
+                    • Pastillas: <span id="resumen-pastillas">Humbucker</span><br>
+                    • Precio: 899€
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <!-- Fallback para navegadores antiguos -->
+    <noscript>
+        <div style="color: white; text-align: center; margin-top: 20px;">
+            ⚠️ Tu navegador no soporta JavaScript o Model Viewer
+        </div>
+    </noscript>
+</body>
+</html>

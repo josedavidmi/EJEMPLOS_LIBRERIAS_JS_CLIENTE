@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Subasta Online - Tiempo Real</title>
+    
+    <!-- EasyTimer.js -->
+    <script src="https://cdn.jsdelivr.net/npm/easytimer@1.1.3/dist/easytimer.min.js"></script>
+    
+    <!-- noUiSlider -->
+    <link href="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.js"></script>
+    
+    <!-- Tabulator (tablas modernas sin jQuery) -->
+    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #141E30 0%, #243B55 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        h1 {
+            color: #141E30;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h2 {
+            color: #243B55;
+            margin: 30px 0 20px;
+            font-size: 1.5rem;
+        }
+
+        .subheader {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        /* Filtro de precio con noUiSlider */
+        .filtro-container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .filtro-titulo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #slider-precio {
+            margin: 30px 0 20px;
+        }
+
+        .precio-valores {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.1rem;
+            color: #141E30;
+        }
+
+        .precio-min, .precio-max {
+            background: #f0f0f0;
+            padding: 8px 15px;
+            border-radius: 25px;
+            font-weight: bold;
+        }
+
+        /* Grid de subastas */
+        .subastas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        /* Tarjetas de subasta */
+        .subasta-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            border: 1px solid #f0f0f0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .subasta-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .subasta-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: #4CAF50;
+        }
+
+        .subasta-card.terminado::before {
+            background: #f44336;
+        }
+
+        .subasta-titulo {
+            font-size: 1.3rem;
+            color: #141E30;
+            margin-bottom: 10px;
+        }
+
+        .subasta-precio {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #243B55;
+            margin-bottom: 15px;
+        }
+
+        .subasta-precio span {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: normal;
+        }
+
+        /* Countdown con EasyTimer */
+        .countdown-container {
+            background: #141E30;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .countdown-tiempo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            font-family: monospace;
+            letter-spacing: 3px;
+        }
+
+        .countdown-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .subasta-terminado {
+            background: #f44336;
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        .btn-pujar {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-pujar:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-pujar:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Tabla de pujas recientes */
+        .tabla-container {
+            margin-top: 40px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+
+        .filtro-activo {
+            background: #4CAF50;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+
+        .stats-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            border-left: 5px solid #4CAF50;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #141E30;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ SUBASTA EXPRESS ⚡</h1>
+        <div class="subheader">Tiempo real simulado • Puja en vivo</div>
+
+        <!-- Stats rápidas -->
+        <div class="stats-container">
+            <div class="stat-box">
+                <div class="stat-label">Subastas activas</div>
+                <div class="stat-number" id="stats-activas">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Precio medio</div>
+                <div class="stat-number" id="stats-precio">0€</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Pujas hoy</div>
+                <div class="stat-number" id="stats-pujas">47</div>
+            </div>
+        </div>
+
+        <!-- 1. noUiSlider - Filtro de rango de precio -->
+        <div class="filtro-container">
+            <div class="filtro-titulo">
+                <h2>💰 Filtrar por precio</h2>
+                <span id="filtro-contador" class="filtro-activo"></span>
+            </div>
+            <div id="slider-precio"></div>
+            <div class="precio-valores">
+                <span class="precio-min" id="precio-min-label">0 €</span>
+                <span class="precio-max" id="precio-max-label">1000 €</span>
+            </div>
+        </div>
+
+        <!-- Grid de subastas con countdown -->
+        <h2>📦 Subastas activas</h2>
+        <div id="subastas-grid" class="subastas-grid"></div>
+
+        <!-- 2. Tabulator - Tabla de pujas recientes -->
+        <div class="tabla-container">
+            <h2>📊 Pujas recientes</h2>
+            <div id="tabla-pujas"></div>
+        </div>
+    </div>
+
+    <script>
+        // ============ DATOS DE EJEMPLO ============
+        const subastas = [
+            { 
+                id: 1, 
+                titulo: '🎧 Sony WH-1000XM4', 
+                precio: 220, 
+                precio_inicial: 180,
+                tiempo_restante: 3600, // 1 hora en segundos
+                pujas: 12,
+                imagen: '🎧'
+            },
+            { 
+                id: 2, 
+                titulo: '📱 iPhone 13 Pro', 
+                precio: 650, 
+                precio_inicial: 550,
+                tiempo_restante: 7200, // 2 horas
+                pujas: 24,
+                imagen: '📱'
+            },
+            { 
+                id: 3, 
+                titulo: '💻 MacBook Air M1', 
+                precio: 899, 
+                precio_inicial: 800,
+                tiempo_restante: 5400, // 1.5 horas
+                pujas: 31,
+                imagen: '💻'
+            },
+            { 
+                id: 4, 
+                titulo: '⌚ Apple Watch S7', 
+                precio: 320, 
+                precio_inicial: 280,
+                tiempo_restante: 2700, // 45 minutos
+                pujas: 8,
+                imagen: '⌚'
+            },
+            { 
+                id: 5, 
+                titulo: '🎮 PlayStation 5', 
+                precio: 550, 
+                precio_inicial: 480,
+                tiempo_restante: 1800, // 30 minutos
+                pujas: 42,
+                imagen: '🎮'
+            },
+            { 
+                id: 6, 
+                titulo: '📷 Cámara Sony A6400', 
+                precio: 780, 
+                precio_inicial: 700,
+                tiempo_restante: 4500, // 1.25 horas
+                pujas: 15,
+                imagen: '📷'
+            }
+        ];
+
+        const pujas = [
+            { id: 1, usuario: 'Carlos G.', producto: 'iPhone 13 Pro', cantidad: 650, fecha: '2026-02-12 15:23' },
+            { id: 2, usuario: 'Ana M.', producto: 'MacBook Air M1', cantidad: 899, fecha: '2026-02-12 15:18' },
+            { id: 3, usuario: 'Luis R.', producto: 'PlayStation 5', cantidad: 550, fecha: '2026-02-12 15:05' },
+            { id: 4, usuario: 'María L.', producto: 'Sony WH-1000XM4', cantidad: 220, fecha: '2026-02-12 14:55' },
+            { id: 5, usuario: 'Javier P.', producto: 'Apple Watch S7', cantidad: 320, fecha: '2026-02-12 14:42' },
+            { id: 6, usuario: 'Elena S.', producto: 'Cámara Sony A6400', cantidad: 780, fecha: '2026-02-12 14:30' },
+            { id: 7, usuario: 'David N.', producto: 'iPhone 13 Pro', cantidad: 645, fecha: '2026-02-12 14:15' },
+            { id: 8, usuario: 'Sofia R.', producto: 'PlayStation 5', cantidad: 540, fecha: '2026-02-12 14:00' }
+        ];
+
+        // ============ ESTADO GLOBAL ============
+        let subastasFiltradas = [...subastas];
+        let timers = [];
+        let tabulatorTable = null;
+
+        // ============ 1. noUiSlider - FILTRO DE PRECIO ============
+        function initSlider() {
+            const slider = document.getElementById('slider-precio');
+            const minLabel = document.getElementById('precio-min-label');
+            const maxLabel = document.getElementById('precio-max-label');
+            
+            noUiSlider.create(slider, {
+                start: [0, 1000],
+                connect: true,
+                step: 10,
+                range: {
+                    'min': 0,
+                    'max': 1000
+                },
+                format: {
+                    to: value => Math.round(value),
+                    from: value => Math.round(value)
+                }
+            });
+
+            slider.noUiSlider.on('update', (values) => {
+                const min = parseInt(values[0]);
+                const max = parseInt(values[1]);
+                
+                minLabel.innerHTML = `${min} €`;
+                maxLabel.innerHTML = `${max} €`;
+                
+                filtrarPorPrecio(min, max);
+            });
+        }
+
+        function filtrarPorPrecio(min, max) {
+            subastasFiltradas = subastas.filter(s => s.precio >= min && s.precio <= max);
+            document.getElementById('filtro-contador').innerHTML = `${subastasFiltradas.length} subastas`;
+            renderizarSubastas();
+            actualizarStats();
+        }
+
+        // ============ 2. EasyTimer.js - COUNTDOWN ============
+        function iniciarCountdown(elementId, segundos, subastaId) {
+            const timer = new Timer();
+            const container = document.getElementById(elementId);
+            
+            timer.start({ countdown: true, startValues: { seconds: segundos } });
+            
+            timer.addEventListener('secondsUpdated', () => {
+                const values = timer.getTimeValues();
+                container.innerHTML = `
+                    <div class="countdown-tiempo">
+                        ${values.hours.toString().padStart(2, '0')}:
+                        ${values.minutes.toString().padStart(2, '0')}:
+                        ${values.seconds.toString().padStart(2, '0')}
+                    </div>
+                    <div class="countdown-label">tiempo restante</div>
+                `;
+            });
+
+            timer.addEventListener('targetAchieved', () => {
+                container.innerHTML = '<div class="subasta-terminado">⏰ SUBASTA FINALIZADA</div>';
+                
+                // Deshabilitar botón
+                const btn = document.querySelector(`.btn-pujar[data-id="${subastaId}"]`);
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = 'Finalizada';
+                }
+                
+                // Marcar card
+                const card = document.querySelector(`.subasta-card[data-id="${subastaId}"]`);
+                if (card) card.classList.add('terminado');
+            });
+
+            timers.push(timer);
+            return timer;
+        }
+
+        // ============ RENDERIZAR SUBASTAS ============
+        function renderizarSubastas() {
+            const grid = document.getElementById('subastas-grid');
+            
+            grid.innerHTML = subastasFiltradas.map(subasta => {
+                const cardId = `countdown-${subasta.id}`;
+                
+                return `
+                    <div class="subasta-card" data-id="${subasta.id}">
+                        <div style="font-size: 3rem; text-align: center; margin-bottom: 10px;">
+                            ${subasta.imagen}
+                        </div>
+                        <div class="subasta-titulo">${subasta.titulo}</div>
+                        <div class="subasta-precio">
+                            ${subasta.precio}€ 
+                            <span>| ${subasta.pujas} pujas</span>
+                        </div>
+                        
+                        <div id="${cardId}" class="countdown-container">
+                            <div class="countdown-tiempo">Cargando...</div>
+                        </div>
+                        
+                        <button class="btn-pujar" data-id="${subasta.id}" onclick="simularPuja(${subasta.id})">
+                            🚀 Pujar ahora
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            // Iniciar countdowns después de renderizar
+            subastasFiltradas.forEach(subasta => {
+                const cardId = `countdown-${subasta.id}`;
+                if (document.getElementById(cardId)) {
+                    iniciarCountdown(cardId, subasta.tiempo_restante, subasta.id);
+                }
+            });
+        }
+
+        // ============ SIMULAR PUJA ============
+        function simularPuja(subastaId) {
+            const subasta = subastas.find(s => s.id === subastaId);
+            if (!subasta) return;
+            
+            // Incrementar precio y pujas
+            const incremento = Math.floor(Math.random() * 10) + 5;
+            subasta.precio += incremento;
+            subasta.pujas += 1;
+            
+            // Añadir puja a la tabla
+            const nuevaPuja = {
+                id: pujas.length + 1,
+                usuario: `Usuario${Math.floor(Math.random() * 100)}`,
+                producto: subasta.titulo,
+                cantidad: subasta.precio,
+                fecha: new Date().toLocaleString('es-ES', { 
+                    day: '2-digit', 
+                    month: '2-digit', 
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })
+            };
+            
+            pujas.unshift(nuevaPuja);
+            
+            // Actualizar UI
+            renderizarSubastas();
+            actualizarTablaPujas();
+            actualizarStats();
+            
+            alert(`✅ ¡Puja realizada!\nNuevo precio: ${subasta.precio}€`);
+        }
+
+        // ============ 3. Tabulator - TABLA DE PUJAS ============
+        function initTablaPujas() {
+            tabulatorTable = new Tabulator('#tabla-pujas', {
+                data: pujas,
+                layout: 'fitColumns',
+                pagination: 'local',
+                paginationSize: 5,
+                paginationSizeSelector: [5, 10, 20],
+                movableColumns: true,
+                resizableRows: false,
+                columns: [
+                    { title: 'Usuario', field: 'usuario', sorter: 'string', widthGrow: 2 },
+                    { title: 'Producto', field: 'producto', sorter: 'string', widthGrow: 3 },
+                    { 
+                        title: 'Cantidad', 
+                        field: 'cantidad', 
+                        sorter: 'number',
+                        widthGrow: 2,
+                        formatter: function(cell) {
+                            return `💰 ${cell.getValue()}€`;
+                        },
+                        cssClass: 'text-bold'
+                    },
+                    { 
+                        title: 'Fecha', 
+                        field: 'fecha', 
+                        sorter: 'string',
+                        widthGrow: 2,
+                        formatter: function(cell) {
+                            return `📅 ${cell.getValue()}`;
+                        }
+                    }
+                ],
+                placeholder: 'No hay pujas recientes',
+                initialSort: [
+                    { column: 'cantidad', dir: 'desc' }
+                ]
+            });
+        }
+
+        function actualizarTablaPujas() {
+            if (tabulatorTable) {
+                tabulatorTable.replaceData(pujas);
+            }
+        }
+
+        // ============ ESTADÍSTICAS ============
+        function actualizarStats() {
+            const activas = subastasFiltradas.length;
+            const precioMedio = subastasFiltradas.reduce((sum, s) => sum + s.precio, 0) / activas;
+            
+            document.getElementById('stats-activas').innerHTML = activas;
+            document.getElementById('stats-precio').innerHTML = `${Math.round(precioMedio)}€`;
+            document.getElementById('stats-pujas').innerHTML = pujas.length;
+        }
+
+        // ============ RESET DE TIMERS ============
+        function pararTodosTimers() {
+            timers.forEach(timer => {
+                if (timer) timer.stop();
+            });
+            timers = [];
+        }
+
+        // ============ INICIALIZACIÓN ============
+        document.addEventListener('DOMContentLoaded', () => {
+            initSlider();
+            initTablaPujas();
+            renderizarSubastas();
+            actualizarStats();
+            
+            // Cleanup al cambiar página
+            window.addEventListener('beforeunload', pararTodosTimers);
+        });
+    </script>
+</body>
+</html>

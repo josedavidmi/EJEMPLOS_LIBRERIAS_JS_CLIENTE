@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>FitConnect - Gimnasio Virtual</title>
+    
+    <!-- Quill.js - Editor WYSIWYG -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    
+    <!-- DOMPurify - Sanitización -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.5/purify.min.js"></script>
+    
+    <!-- Jitsi Meet API -->
+    <script src="https://meet.jit.si/external_api.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 1px solid #f0f0f0;
+            margin-bottom: 25px;
+        }
+
+        h2 {
+            color: #444;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Editor Quill */
+        .editor-container {
+            margin-bottom: 20px;
+        }
+
+        #editor {
+            height: 200px;
+            background: white;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .ql-toolbar {
+            border-radius: 10px 10px 0 0;
+            background: #f8f9fa;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            border: 2px solid white;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Posts del foro */
+        .posts-container {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .post {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .post-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .author-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .author-info h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .author-info span {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .post-tag {
+            background: #e0e0e0;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .post-content {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .post-content img {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+
+        .post-footer {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 20px;
+            color: #666;
+        }
+
+        /* Sala Jitsi */
+        #jitsi-container {
+            width: 100%;
+            height: 450px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .room-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .room-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .room-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .active-room {
+            background: #667eea;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        /* Mensajes */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💪 FitConnect - Comunidad Fitness</h1>
+        <div class="subtitle">Foro de entrenamiento + Videoconsultas en vivo</div>
+
+        <!-- Mensaje de bienvenida/seguridad -->
+        <div class="alert alert-success">
+            <strong>🛡️ Seguridad activada:</strong> Todo el contenido del foro es sanitizado con DOMPurify antes de mostrarse.
+        </div>
+
+        <div class="grid-2">
+            <!-- COLUMNA IZQUIERDA: FORO + EDITOR -->
+            <div>
+                <!-- Card: Crear nuevo post con Quill -->
+                <div class="card">
+                    <h2>✍️ Crear nuevo post</h2>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <input type="text" id="post-titulo" placeholder="Título del post" style="width: 100%; padding: 12px 20px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 15px;">
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <select id="post-categoria" style="width: 100%; padding: 12px 20px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 15px;">
+                            <option value="Entrenamiento">🏋️ Entrenamiento</option>
+                            <option value="Nutrición">🥗 Nutrición</option>
+                            <option value="Suplementación">💊 Suplementación</option>
+                            <option value="Motivación">⭐ Motivación</option>
+                            <option value="Dudas">❓ Dudas</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Editor Quill.js -->
+                    <div class="editor-container">
+                        <div id="editor"></div>
+                    </div>
+
+                    <div style="display: flex; gap: 15px;">
+                        <button id="btn-publicar" class="btn">📢 Publicar post</button>
+                        <button id="btn-limpiar" class="btn btn-secondary">🗑️ Limpiar</button>
+                    </div>
+                </div>
+
+                <!-- Card: Posts del foro -->
+                <div class="card">
+                    <h2>📰 Últimos posts</h2>
+                    <div id="posts-container" class="posts-container">
+                        <!-- Los posts se cargarán aquí -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMNA DERECHA: VIDEOCONFERENCIA JITSI -->
+            <div>
+                <!-- Card: Control de sala virtual -->
+                <div class="card">
+                    <h2>📹 Videoconsulta en vivo</h2>
+                    
+                    <div class="room-controls">
+                        <input type="text" id="room-name" class="room-input" placeholder="Nombre de la sala (ej: crossfit-avanzado)" value="fitconnect-gimnasio">
+                        <button onclick="joinRoom()" class="btn" style="white-space: nowrap;">🎥 Unirse</button>
+                    </div>
+
+                    <div id="room-status">
+                        <span class="active-room">🟢 Sala activa: <span id="current-room">fitconnect-gimnasio</span></span>
+                    </div>
+
+                    <!-- Contenedor Jitsi Meet -->
+                    <div id="jitsi-container"></div>
+                    
+                    <p style="margin-top: 15px; color: #666; font-size: 0.9rem; text-align: center;">
+                        ⚡ Videollamada encriptada • Cortesía de Jitsi Meet
+                    </p>
+                </div>
+
+                <!-- Card: Usuarios conectados (simulado) -->
+                <div class="card">
+                    <h2>👥 Miembros online</h2>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 10px 20px; border-radius: 25px;">
+                            <div style="width: 12px; height: 12px; background: #4CAF50; border-radius: 50%;"></div>
+                            <span><strong>Carlos M.</strong> - Entrenador</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 10px 20px; border-radius: 25px;">
+                            <div style="width: 12px; height: 12px; background: #4CAF50; border-radius: 50%;"></div>
+                            <span><strong>Ana G.</strong> - Nutricionista</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 10px 20px; border-radius: 25px;">
+                            <div style="width: 12px; height: 12px; background: #4CAF50; border-radius: 50%;"></div>
+                            <span><strong>Laura</strong> - Alumna</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 10px 20px; border-radius: 25px;">
+                            <div style="width: 12px; height: 12px; background: #FFC107; border-radius: 50%;"></div>
+                            <span><strong>+3</strong> invitados</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ 1. QUILL - EDITOR WYSIWYG ============
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            placeholder: 'Escribe tu post... formato libre, imágenes, enlaces...',
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline', 'strike'],
+                    ['blockquote', 'code-block'],
+                    [{ 'header': 1 }, { 'header': 2 }],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    [{ 'script': 'sub' }, { 'script': 'super' }],
+                    [{ 'indent': '-1' }, { 'indent': '+1' }],
+                    [{ 'direction': 'rtl' }],
+                    [{ 'size': ['small', false, 'large', 'huge'] }],
+                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'font': [] }],
+                    [{ 'align': [] }],
+                    ['clean'],
+                    ['link', 'image', 'video']
+                ]
+            }
+        });
+
+        // ============ 2. DOMPurify - SANITIZACIÓN ============
+        // Datos de ejemplo (posts precargados)
+        let posts = [
+            {
+                id: 1,
+                titulo: '💪 Rutina de fuerza para principiantes',
+                categoria: 'Entrenamiento',
+                contenido: '<h3><strong>Ejercicios básicos:</strong></h3><ul><li>Sentadillas - 3x12</li><li>Flexiones - 3x10</li><li>Remo con mancuerna - 3x12</li></ul><p><em>Recordad mantener la espalda recta siempre</em> 🏋️</p>',
+                autor: 'Carlos M.',
+                avatar: 'CM',
+                fecha: '2026-02-12 10:30',
+                likes: 24,
+                comentarios: 7
+            },
+            {
+                id: 2,
+                titulo: '🥗 Batido de proteínas casero',
+                categoria: 'Nutrición',
+                contenido: '<p><strong>Receta:</strong></p><ol><li>1 scoop de proteína</li><li>1 plátano</li><li>200ml leche de almendras</li><li>1 cucharada de mantequilla de cacahuete</li></ol><p>Licuar todo y listo 🥤</p>',
+                autor: 'Ana G.',
+                avatar: 'AG',
+                fecha: '2026-02-11 18:45',
+                likes: 42,
+                comentarios: 12
+            }
+        ];
+
+        // Función para sanitizar HTML con DOMPurify
+        function sanitizarHTML(html) {
+            return DOMPurify.sanitize(html, {
+                ALLOWED_TAGS: [
+                    'p', 'br', 'strong', 'b', 'em', 'i', 'u', 'strike', 
+                    'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li',
+                    'a', 'img', 'span', 'div', 'blockquote', 'pre', 'code'
+                ],
+                ALLOWED_ATTR: ['href', 'target', 'src', 'alt', 'class', 'style'],
+                ALLOW_DATA_ATTR: false,
+                FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form'],
+                FORBID_ATTR: ['onerror', 'onload', 'onclick']
+            });
+        }
+
+        // Renderizar posts con DOMPurify
+        function renderizarPosts() {
+            const container = document.getElementById('posts-container');
+            
+            container.innerHTML = posts.map(post => {
+                // SANITIZAR: aquí está la clave de seguridad
+                const contenidoSeguro = sanitizarHTML(post.contenido);
+                
+                return `
+                    <div class="post">
+                        <div class="post-header">
+                            <div class="post-author">
+                                <div class="author-avatar">${post.avatar}</div>
+                                <div class="author-info">
+                                    <h4>${post.autor}</h4>
+                                    <span>📅 ${post.fecha}</span>
+                                </div>
+                            </div>
+                            <span class="post-tag">#${post.categoria}</span>
+                        </div>
+                        <h3 style="margin-bottom: 15px; color: #333;">${post.titulo}</h3>
+                        <div class="post-content">
+                            ${contenidoSeguro}
+                        </div>
+                        <div class="post-footer">
+                            <span>❤️ ${post.likes} me gusta</span>
+                            <span>💬 ${post.comentarios} comentarios</span>
+                            <span style="margin-left: auto;">🔗 Compartir</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Publicar nuevo post
+        function publicarPost() {
+            const titulo = document.getElementById('post-titulo').value.trim();
+            const categoria = document.getElementById('post-categoria').value;
+            
+            if (!titulo) {
+                alert('❌ El título es obligatorio');
+                return;
+            }
+
+            const contenido = quill.root.innerHTML;
+            
+            if (contenido === '<p><br></p>' || !contenido) {
+                alert('❌ El contenido no puede estar vacío');
+                return;
+            }
+
+            // Crear nuevo post (el contenido se sanitizará al renderizar)
+            const nuevoPost = {
+                id: posts.length + 1,
+                titulo: titulo,
+                categoria: categoria,
+                contenido: contenido, // Guardamos el original, sanitizamos al mostrar
+                autor: 'Usuario FitConnect',
+                avatar: 'UF',
+                fecha: new Date().toLocaleString('es-ES', { 
+                    year: 'numeric', 
+                    month: '2-digit', 
+                    day: '2-digit',
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                }),
+                likes: 0,
+                comentarios: 0
+            };
+
+            posts.unshift(nuevoPost);
+            renderizarPosts();
+            
+            // Limpiar formulario
+            document.getElementById('post-titulo').value = '';
+            document.getElementById('post-categoria').value = 'Entrenamiento';
+            quill.root.innerHTML = '';
+
+            alert('✅ Post publicado con seguridad (sanitizado)');
+        }
+
+        // ============ 3. JITSI MEET IFRAME API ============
+        let jitsiApi = null;
+
+        function joinRoom() {
+            const roomName = document.getElementById('room-name').value.trim();
+            
+            if (!roomName) {
+                alert('❌ Debes especificar un nombre de sala');
+                return;
+            }
+
+            // Limpiar nombre (solo caracteres seguros)
+            const cleanRoomName = roomName.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+            
+            // Actualizar UI
+            document.getElementById('current-room').innerHTML = cleanRoomName;
+            
+            // Destruir instancia anterior si existe
+            if (jitsiApi) {
+                jitsiApi.dispose();
+            }
+
+            // Opciones de Jitsi
+            const domain = 'meet.jit.si';
+            const options = {
+                roomName: cleanRoomName,
+                width: '100%',
+                height: '100%',
+                parentNode: document.querySelector('#jitsi-container'),
+                configOverwrite: {
+                    startWithAudioMuted: true,
+                    startWithVideoMuted: false,
+                    enableWelcomePage: false,
+                    enableClosePage: false,
+                    prejoinPageEnabled: false,
+                    toolbarButtons: [
+                        'microphone', 'camera', 'closedcaptions', 'desktop', 
+                        'fullscreen', 'fodeviceselection', 'hangup', 
+                        'profile', 'chat', 'recording', 'livestreaming', 
+                        'etherpad', 'sharedvideo', 'settings', 'raisehand',
+                        'videoquality', 'filmstrip', 'invite', 'feedback',
+                        'stats', 'shortcuts', 'tileview', 'download'
+                    ]
+                },
+                interfaceConfigOverwrite: {
+                    TOOLBAR_BUTTONS: [
+                        'microphone', 'camera', 'closedcaptions', 'desktop', 
+                        'fullscreen', 'fodeviceselection', 'hangup', 
+                        'profile', 'chat', 'recording', 'livestreaming', 
+                        'etherpad', 'sharedvideo', 'settings', 'raisehand',
+                        'videoquality', 'filmstrip', 'invite', 'feedback',
+                        'stats', 'shortcuts', 'tileview', 'download'
+                    ],
+                    DEFAULT_REMOTE_DISPLAY_NAME: 'FitConnect User',
+                    SHOW_JITSI_WATERMARK: false,
+                    SHOW_WATERMARK_FOR_GUESTS: false,
+                    DEFAULT_LOGO_URL: '',
+                    DISABLE_VIDEO_BACKGROUND: true
+                },
+                userInfo: {
+                    displayName: 'FitConnect User',
+                    email: 'user@fitconnect.com'
+                }
+            };
+
+            try {
+                jitsiApi = new JitsiMeetExternalAPI(domain, options);
+                console.log('✅ Jitsi conectado a sala:', cleanRoomName);
+            } catch (error) {
+                console.error('Error Jitsi:', error);
+                alert('❌ Error al conectar con la sala. Recarga la página.');
+            }
+        }
+
+        // ============ INICIALIZACIÓN ============
+        document.addEventListener('DOMContentLoaded', () => {
+            // Renderizar posts iniciales
+            renderizarPosts();
+            
+            // Event listeners
+            document.getElementById('btn-publicar').addEventListener('click', publicarPost);
+            
+            document.getElementById('btn-limpiar').addEventListener('click', () => {
+                quill.root.innerHTML = '';
+                document.getElementById('post-titulo').value = '';
+            });
+
+            // Unirse a sala por defecto
+            setTimeout(() => {
+                joinRoom();
+            }, 500);
+        });
+    </script>
+</body>
+</html>
