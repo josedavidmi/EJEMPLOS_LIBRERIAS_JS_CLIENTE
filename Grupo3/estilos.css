@@ -1,0 +1,173 @@
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h2 {
+            color: #444;
+            margin: 30px 0 20px;
+            font-size: 1.5rem;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            border: 1px solid #f0f0f0;
+        }
+
+        /* Filtro fechas */
+        .filtro-fechas {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filtro-fechas input {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .filtro-fechas button {
+            padding: 10px 20px;
+            background: #4158D0;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        /* Tabla gastos */
+        .tabla-gastos {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .tabla-gastos th {
+            text-align: left;
+            padding: 12px;
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .tabla-gastos td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .categoria {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: white;
+        }
+
+        .categoria-comida { background: #FF6B6B; }
+        .categoria-transporte { background: #4ECDC4; }
+        .categoria-ocio { background: #FFE66D; color: #333; }
+        .categoria-otros { background: #A8E6CF; color: #333; }
+
+        /* Mapa */
+        #mapa {
+            height: 300px;
+            width: 100%;
+            border-radius: 15px;
+            margin-top: 15px;
+        }
+
+        /* Lista participantes */
+        .lista-participantes {
+            list-style: none;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .participante-item {
+            padding: 12px;
+            background: white;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: move;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .participante-item:hover {
+            background: #f0f0f0;
+            transform: translateX(5px);
+        }
+
+        .drag-handle {
+            color: #999;
+            font-size: 18px;
+        }
+
+        .total-gastos {
+            font-size: 1.5rem;
+            color: #4158D0;
+            font-weight: bold;
+            text-align: right;
+            margin-top: 15px;
+        }
+
+        .crear-quedada {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .crear-quedada input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
